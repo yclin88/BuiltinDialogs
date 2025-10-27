@@ -1,5 +1,8 @@
 #include "cbuiltindlg.h"
-#include <QGridLayout>
+/*#include <QGridLayout>
+#include <QDebug>
+#include <QPalette> */
+#include <QtWidgets>
 CBuiltinDlg::CBuiltinDlg(QWidget *parent)
     : QDialog(parent)
 {
@@ -27,7 +30,59 @@ CBuiltinDlg::CBuiltinDlg(QWidget *parent)
     setLayout(gridLayout); //將目前對話盒視窗設為gridLayout佈局
     setWindowTitle(tr("內建對話盒展示"));
     resize(400,300);
+    connect(colorPushBtn,SIGNAL(clicked()),this,SLOT(doPushBtn()));
+    connect(filePushBtn,SIGNAL(clicked()),this,SLOT(doPushBtn()));
+    connect(progressPushBtn,SIGNAL(clicked()),this,SLOT(doPushBtn()));
 
 }
 
 CBuiltinDlg::~CBuiltinDlg() {}
+
+void CBuiltinDlg::doPushBtn()
+{
+    QPushButton  *btn = qobject_cast<QPushButton*>(sender());
+    if (btn == colorPushBtn)
+    {
+        //qDebug() << "Hello World!";
+        QPalette palette = displayTextEdit->palette();
+        const QColor& color =
+            QColorDialog::getColor(palette.color(QPalette::Text),
+                                                     this, tr("設定背景顏色"));
+        if(color.isValid())
+        {
+            palette.setColor(QPalette::Text,color);
+            displayTextEdit->setPalette(palette);
+        }
+
+    }
+    if (btn == filePushBtn)
+    {
+        QString fileName = QFileDialog::getOpenFileName(this,
+                                                        QStringLiteral("開啟檔案"),
+                                                        tr("."),
+                                                        QStringLiteral("任何檔案(*.*)"
+                                                           ";;文字檔(*.txt)"
+                                                           ";;XML檔(*.xml)"));
+        displayTextEdit->setText(fileName);
+
+
+    }
+    if(btn == progressPushBtn)
+    {
+        QProgressDialog progress(tr("正在複製檔案..."),
+                                 tr("取消"),
+                                 0,
+                                 10000,
+                                 this);
+        progress.setWindowTitle(tr("進度對話盒"));
+        progress.show();
+        for(int i=0;i<100000; i++)
+        {
+            progress.setValue(i);
+            qApp->processEvents();
+            if (progress.wasCanceled()) break;
+            qDebug()<< i;
+        }
+        //_sleep(10000);
+    }
+}
